@@ -1,11 +1,10 @@
 const { Client } = require('pg');
+const formatReviews = require('./formatReviews.js');
 // const productsTable = require('./productsTable.js');
 
 const client = new Client({ database: 'mydb' });
 
-// REVIEWS TABLE
-
-// DEFINE QUERIES
+// REVIEWS – CREATE TABLE
 
 const createReviewsTableQuery = `
 CREATE TABLE IF NOT EXISTS reviews (
@@ -24,16 +23,6 @@ CREATE TABLE IF NOT EXISTS reviews (
 );
 `;
 
-// id,product_id,rating,date,summary,body,recommend,reported,reviewer_name,reviewer_email,response,helpfulness
-// 1,1,5,"2019-01-01","This product was great!","I really did or did not like this product based on whether it was sustainably sourced.  Then I found out that its made from nothing at all.",true,false,"funtime","first.last@gmail.com",,8
-
-const insertReviewQuery = `
-INSERT INTO reviews (id, rating, summary, recommend, response, reported, body, date, reviewer_name, email, helpfulness, product_id)
-VALUES (1, 5, 'This product was great!', true, null, false, 'I really did or did not like this product based on whether it was sustainably sourced.  Then I found out that its made from nothing at all.', '2019-01-01', 'funtime', 'first.last@gmail.com', 8, 1)
-`;
-
-// MAKE QUERIES
-
 client.createReviewsTable = cb => {
   client.query(createReviewsTableQuery, (err, res) => {
     if (err) {
@@ -45,8 +34,15 @@ client.createReviewsTable = cb => {
   });
 };
 
+// REVIEWS – INSERT ROW
+
+var string1FromCSV = '1,1,5,"2019-01-01","This product was great!","I really did or did not like this product based on whether it was sustainably sourced.  Then I found out that its made from nothing at all.",true,false,"funtime","first.last@gmail.com",,8';
+var string2FromCSV = '2,1,4,"2019-01-11","This product was ok!","I really did not like this product solely because I am tiny and do not fit into it.",false,false,"mymainstreammother","first.last@gmail.com",,2';
+
 client.insertReview = cb => {
-  client.query(insertReviewQuery, (err, res) => {
+  var myQuery = formatReviews.createReviewQuery(formatReviews.createOrderedArrayFromString(string1FromCSV));
+  console.log('myQuery:', myQuery);
+  client.query(myQuery, (err, res) => {
     if (err) {
       cb(err);
     } else {
@@ -55,6 +51,23 @@ client.insertReview = cb => {
     }
   });
 };
+
+
+// id,product_id,rating,date,summary,body,recommend,reported,reviewer_name,reviewer_email,response,helpfulness
+// 1,1,5,"2019-01-01","This product was great!","I really did or did not like this product based on whether it was sustainably sourced.  Then I found out that its made from nothing at all.",true,false,"funtime","first.last@gmail.com",,8
+
+const insertReviewQuery = `
+INSERT INTO reviews (id, rating, summary, recommend, response, reported, body, date, reviewer_name, email, helpfulness, product_id)
+VALUES (1, 5, 'This product was great!', true, null, false, 'I really did or did not like this product based on whether it was sustainably sourced.  Then I found out that its made from nothing at all.', '2019-01-01', 'funtime', 'first.last@gmail.com', 8, 1)
+`;
+
+var createReviewQuery = (array) => {
+  return `
+    INSERT INTO reviews (id, rating, summary, recommend, response, reported, body, date, reviewer_name, email, helpfulness, product_id)
+    VALUES (${array.join(', ').slice(0, -2)})
+  `;
+};
+
 
 
 // PRODUCTS TABLE (reviews meta data)
