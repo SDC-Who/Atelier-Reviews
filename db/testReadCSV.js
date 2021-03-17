@@ -16,13 +16,13 @@ CREATE TABLE IF NOT EXISTS reviews (
   product_id int,
   rating int,
   date varchar(20),
-  summary varchar(80),
-  body varchar(255),
+  summary varchar(255),
+  body varchar(400),
   recommend boolean,
   reported boolean,
   reviewer_name varchar(20),
   reviewer_email varchar(50),
-  response varchar(80),
+  response varchar(255),
   helpfulness int,
   photos jsonb
 );
