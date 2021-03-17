@@ -14,7 +14,7 @@ client.connect()
     if (err) {
       console.log('err from db:', err);
     } else {
-      console.log('res:', res);
+      console.log('res.command:', res.command);
     }
   }));
   // .finally(() => client.end());
