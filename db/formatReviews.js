@@ -36,7 +36,7 @@ module.exports.createOrderedArrayFromString = string => {
   orderedArray[8] = arrayFromString[8] !== '' ? '\'' + arrayFromString[8].slice(1, -1) + '\'' : 'null'; // reviewer_name
   orderedArray[9] = arrayFromString[9] !== '' ? '\'' + arrayFromString[9].slice(1, -1) + '\'' : 'null'; // email
   orderedArray[10] = arrayFromString[11] !== '' ? Number(arrayFromString[11]) : 'null'; // helpfulness
-  orderedArray[11] = arrayFromString[1] !== '' ? Number(arrayFromString[1]) : 'null'; // product_id
+  orderedArray[12] = arrayFromString[1] !== '' ? Number(arrayFromString[1]) : 'null'; // product_id
   return orderedArray;
 };
 
@@ -44,7 +44,7 @@ module.exports.createOrderedArrayFromString = string => {
 
 module.exports.createReviewQuery = array => {
   return `
-    INSERT INTO reviews (id, rating, summary, recommend, response, reported, body, date, reviewer_name, email, helpfulness, product_id)
+    INSERT INTO reviews (id, rating, summary, recommend, response, reported, body, date, reviewer_name, email, helpfulness, photos, product_id)
     VALUES (${array.join(', ')})
   `;
 };

@@ -14,11 +14,12 @@ CREATE TABLE IF NOT EXISTS reviews (
   recommend boolean,
   response varchar(80),
   reported boolean,
-  body varchar(200),
+  body varchar(255),
   date varchar(20),
   reviewer_name varchar(20),
   email varchar(20),
   helpfulness int,
+  photos jsonb,
   product_id int
 );
 `;
@@ -37,17 +38,29 @@ client.createReviewsTable = cb => {
 // REVIEWS – INSERT ROW
 
 var string1FromCSV = '1,1,5,"2019-01-01","This product was great!","I really did or did not like this product based on whether it was sustainably sourced.  Then I found out that its made from nothing at all.",true,false,"funtime","first.last@gmail.com",,8';
-var string2FromCSV = '2,1,4,"2019-01-11","This product was ok!","I really did not like this product solely because I am tiny and do not fit into it.",false,false,"mymainstreammother","first.last@gmail.com",,2';
+var string2FromCSV = '5,2,3,"2019-04-14","I\'m enjoying wearing these shades","Comfortable and practical.",true,false,"shortandsweeet","first.last@gmail.com",,5';
 
 client.insertReview = cb => {
-  var myQuery = formatReviews.createReviewQuery(formatReviews.createOrderedArrayFromString(string1FromCSV));
-  console.log('myQuery:', myQuery);
-  client.query(myQuery, (err, res) => {
+  var myOrderedArray = formatReviews.createOrderedArrayFromString(string1FromCSV);
+  // query db to get the photos for this review
+  client.query(`SELECT * FROM photos_sample WHERE review_id = ${myOrderedArray[0]}`, (err, res) => {
     if (err) {
       cb(err);
     } else {
-      cb(null, res);
-      client.end();
+      // append result to the array that resulted
+      console.log('res.rows from photos query:', res.rows);
+      myOrderedArray[11] = '\'' + JSON.stringify(res.rows) + '\''; // photos array
+      // format query string from completed array
+      var myQuery = formatReviews.createReviewQuery(myOrderedArray);
+      console.log('myQuery:', myQuery);
+      client.query(myQuery, (err, res) => {
+        if (err) {
+          cb(err);
+        } else {
+          cb(null, res);
+          client.end();
+        }
+      });
     }
   });
 };
