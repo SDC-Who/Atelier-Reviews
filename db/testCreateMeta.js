@@ -5,45 +5,32 @@ const formatCSVRow = require('./formatCSVRow.js');
 
 // id,product_id,rating,date,summary,body,recommend,reported,reviewer_name,reviewer_email,response,helpfulness,[photos]
 
-// reading my sample_reviews CSV
-// querying postgreSQL photos_sample db for associated photos for each row
-// format the updated row into query string
-// input it into table
-
-const createReviewsTableQuery = `
-CREATE TABLE IF NOT EXISTS reviews (
+const createMetaTableQuery = `
+CREATE TABLE IF NOT EXISTS reviews_meta (
   id int PRIMARY KEY,
-  product_id int,
-  rating int,
-  date varchar(25),
-  summary varchar(255),
-  body varchar(500),
-  recommend boolean,
-  reported boolean,
-  reviewer_name varchar(50),
-  reviewer_email varchar(50),
-  response varchar(255),
-  helpfulness int,
-  photos jsonb
+  ratings_1 int,
+  ratings_2 int,
+  ratings_3 int,
+  ratings_4 int,
+  ratings_5 int,
+  recommended_true int,
+  recommended_false int,
+  characteristics_fit decimal,
+  characteristics_quality decimal,
+  characteristics_width decimal,
+  characteristics_size decimal,
+  characteristics_comfort decimal,
+  characteristics_length decimal
 );
 `;
+
+
 
 client.connect()
 
   .then(() => console.log('Connected to database!'))
 
   .catch(err => console.log('Error connecting to database:', err))
-
-  .then(() => {
-
-    client.query(createReviewsTableQuery, (err, res) => {
-      if (err) {
-        console.log('err from db:', err);
-      } else {
-        console.log('res.command:', res.command);
-      }
-    });
-  })
 
   .then(() => {
     // sample CSV: /Users/robertkelly/Dropbox/_Repos/_Immersive/_SDC/Atelier-Reviews/sample_data/sample_reviews.csv
