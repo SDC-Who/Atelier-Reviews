@@ -70,3 +70,5 @@ CSV HEADER;`
 FROM '/Users/robertkelly/Dropbox/_Repos/_Immersive/_SDC/_oldCSV/characteristic_reviews.csv'
 DELIMITER ','
 CSV HEADER;`
+
+`CREATE INDEX review_id_index_characterstics ON characteristic_reviews(review_id) INCLUDE (id, characteristic_id, review_id, value);`

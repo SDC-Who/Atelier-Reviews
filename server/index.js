@@ -25,8 +25,7 @@ app.get('/reviews', (req, res) => {
 });
 
 app.get('/reviews/meta', (req, res) => {
-  console.log('req.query:', req.query);
-  client.fetchMetaData(Number(req.query.product_id), (err, data) => {
+  client.fetchMetaData(req.query.product_id, (err, data) => {
     if (err) {
       console.log('err:', err);
       res.sendStatus(500);
@@ -38,7 +37,7 @@ app.get('/reviews/meta', (req, res) => {
 
 
 app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`);
+  console.log(`Server is listening at http://localhost:${port}`);
 });
 
 

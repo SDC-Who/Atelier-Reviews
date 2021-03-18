@@ -41,13 +41,14 @@ client.fetchReviews = ({ product_id, count = 5, page = 1, sort = null }, cb) => 
           })
         });
         if (sort) {
-          if (sort === 'helpful' || sort === 'relevant') {
+          if (sort === 'helpful') {
             filteredReviews.sort((a, b) => b.helpfulness - a.helpfulness);
           } else if (sort === 'newest') {
-            // fix date in database!
+            filteredReviews.sort((a, b) => b.date - a.date);
+          } else if (sort === 'relevant') {
+            filteredReviews.sort((a,b) => b.helpfulness - a.helpfulness || b.date - a.date)
           }
         }
-        console.log('filteredReviews:', filteredReviews);
         response.results = filteredReviews;
         cb(null, response);
       });
@@ -59,9 +60,46 @@ client.fetchReviews = ({ product_id, count = 5, page = 1, sort = null }, cb) => 
 };
 
 client.fetchMetaData = (product_id, cb) => {
-  //
-
-  cb(null, 'heyyy');
+  var response = {
+    product_id,
+    ratings: {},
+    recommended: {},
+    characteristics: {}
+  };
+  client.query(`SELECT id, rating, recommend FROM reviews WHERE product_id = ${product_id};`, (err, res) => {
+    if (err) { return cb(err); };
+    var reviews = res.rows;
+    console.log('reviews:', reviews);
+    reviews.forEach(review => {
+      response.ratings[review.rating] = response.ratings[review.rating] ? (Number(response.ratings[review.rating]) + 1).toString() : '1';
+      response.recommended[review.recommend] = response.recommended[review.recommend] ? (Number(response.recommended[review.recommend]) + 1).toString() : '1';
+    });
+    // query database for characteristic reviews associated with each ID
+    var review_ids = reviews.map(review => review.id.toString());
+    client.query(`SELECT * FROM characteristic_reviews WHERE review_id IN (${review_ids.join(',')});`, (err, res) => {
+      if (err) { return cb(err); };
+      console.log('res.rows from characteristic_reviews:', res.rows);
+      cb(null, response);
+    });
+    // cb(null, response);
+  });
 };
 
 module.exports = client;
+
+// client.sortByRelative() {
+//   let maxHelpful = Math.max.apply(Math, this.state.displayReviews.map(function (o) {
+//     return o.helpfulness;
+//   }))
+//   let maxDate = Math.max.apply(Math, this.state.displayReviews.map(function (o) {
+//     return Math.round((new Date() - new Date(o.date)) / (1000 * 60 * 60 * 24))
+//   }))
+//   let sortByRelative = this.state.displayReviews.map(function (review) {
+//     var o = Object.assign({}, review);
+//     o.a_sort = (o.helpfulness / maxHelpful) + ((new Date(o.date) / (1000 * 60 * 60 * 24)) / maxDate)
+//     return o;
+//   })
+//   return sortByRelative.sort(function (a, b) {
+//     return -(a.sort - b.sort);
+//   })
+// };
