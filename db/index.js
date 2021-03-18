@@ -3,13 +3,13 @@ const { Client } = require('pg');
 const client = new Client({ database: 'mydb' });
 
 client.fetchReviews = ({ product_id, count = 5, page = 1 }, cb) => {
-  // refine initial query to how many is asked for!
   var response = {
     product: product_id,
     page: Number(page),
     count: Number(count)
   };
-  client.query(`SELECT * FROM reviews WHERE product_id = ${product_id};`, (err, res) => {
+  var offset = (response.page - 1) * response.count;
+  client.query(`SELECT * FROM reviews WHERE product_id = ${product_id} LIMIT ${response.count} OFFSET ${offset};`, (err, res) => {
     if (err) { return cb(err); };
     var reviews = res.rows;
     if (reviews.length > 0) {
@@ -26,7 +26,7 @@ client.fetchReviews = ({ product_id, count = 5, page = 1 }, cb) => {
           filteredReviews.push(review);
         }
       });
-      console.log('filteredReviews:', filteredReviews);
+      // console.log('filteredReviews:', filteredReviews);
       var review_ids = filteredReviews.map(review => review.review_id.toString());
       client.query(`SELECT * FROM reviews_photos WHERE review_id IN (${review_ids.join(',')});`, (err, res) => {
         if (err) { return cb(err); };
@@ -40,7 +40,7 @@ client.fetchReviews = ({ product_id, count = 5, page = 1 }, cb) => {
             }
           })
         });
-        console.log('photos:', photos);
+        // console.log('photos:', photos);
         response.results = filteredReviews;
         cb(null, response);
       });
