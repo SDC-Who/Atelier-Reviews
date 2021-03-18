@@ -5,11 +5,10 @@ const client = new Client({ database: 'mydb' });
 client.fetchReviews = ({ product_id, count = 5, page = 1 }, cb) => {
   var response = {
     product: product_id,
-    page: Number(page),
+    page: Number(page) - 1,
     count: Number(count)
   };
-  var offset = (response.page - 1) * response.count;
-  client.query(`SELECT * FROM reviews WHERE product_id = ${product_id} LIMIT ${response.count} OFFSET ${offset};`, (err, res) => {
+  client.query(`SELECT * FROM reviews WHERE product_id = ${product_id} LIMIT ${response.count} OFFSET ${response.page * response.count};`, (err, res) => {
     if (err) { return cb(err); };
     var reviews = res.rows;
     if (reviews.length > 0) {
