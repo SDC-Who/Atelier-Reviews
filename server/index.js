@@ -22,7 +22,19 @@ app.get('/reviews', (req, res) => {
       res.send(data);
     }
   });
-})
+});
+
+app.get('/reviews/meta', (req, res) => {
+  console.log('req.query:', req.query);
+  client.fetchMetaData(Number(req.query.product_id), (err, data) => {
+    if (err) {
+      console.log('err:', err);
+      res.sendStatus(500);
+    } else {
+      res.send(data);
+    }
+  });
+});
 
 
 app.listen(port, () => {

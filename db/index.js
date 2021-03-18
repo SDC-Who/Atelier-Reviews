@@ -2,7 +2,7 @@ const { Client } = require('pg');
 
 const client = new Client({ database: 'mydb' });
 
-client.fetchReviews = ({ product_id, count = 5, page = 1 }, cb) => {
+client.fetchReviews = ({ product_id, count = 5, page = 1, sort = null }, cb) => {
   var response = {
     product: product_id,
     page: Number(page) - 1,
@@ -16,6 +16,8 @@ client.fetchReviews = ({ product_id, count = 5, page = 1 }, cb) => {
       reviews.forEach(review => {
         review.photos = [];
         review.review_id = review.id;
+        var newDate = new Date(review.date);
+        review.date = newDate;
         var { reported } = review;
         delete review.reported;
         delete review.id;
@@ -25,7 +27,6 @@ client.fetchReviews = ({ product_id, count = 5, page = 1 }, cb) => {
           filteredReviews.push(review);
         }
       });
-      // console.log('filteredReviews:', filteredReviews);
       var review_ids = filteredReviews.map(review => review.review_id.toString());
       client.query(`SELECT * FROM reviews_photos WHERE review_id IN (${review_ids.join(',')});`, (err, res) => {
         if (err) { return cb(err); };
@@ -39,7 +40,14 @@ client.fetchReviews = ({ product_id, count = 5, page = 1 }, cb) => {
             }
           })
         });
-        // console.log('photos:', photos);
+        if (sort) {
+          if (sort === 'helpful' || sort === 'relevant') {
+            filteredReviews.sort((a, b) => b.helpfulness - a.helpfulness);
+          } else if (sort === 'newest') {
+            // fix date in database!
+          }
+        }
+        console.log('filteredReviews:', filteredReviews);
         response.results = filteredReviews;
         cb(null, response);
       });
@@ -48,6 +56,12 @@ client.fetchReviews = ({ product_id, count = 5, page = 1 }, cb) => {
       cb(null, response);
     }
   });
+};
+
+client.fetchMetaData = (product_id, cb) => {
+  //
+
+  cb(null, 'heyyy');
 };
 
 module.exports = client;

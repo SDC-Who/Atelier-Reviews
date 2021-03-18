@@ -1,3 +1,10 @@
+// testing out date
+
+`CREATE TABLE IF NOT EXISTS dates (
+  id int PRIMARY KEY,
+  date timestamptz
+);`
+
 // reviews
 
 `CREATE TABLE IF NOT EXISTS reviews (
