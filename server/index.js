@@ -13,8 +13,8 @@ app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
-app.get('/db', (req, res) => {
-  client.fetchCities((err, data) => {
+app.get('/reviews', (req, res) => {
+  client.fetchReviews(req.query, (err, data) => {
     if (err) {
       console.log('err:', err);
       res.sendStatus(500);
@@ -24,6 +24,20 @@ app.get('/db', (req, res) => {
   });
 })
 
+
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`);
 });
+
+
+
+// app.get('/db', (req, res) => {
+//   client.fetchCities((err, data) => {
+//     if (err) {
+//       console.log('err:', err);
+//       res.sendStatus(500);
+//     } else {
+//       res.send(data);
+//     }
+//   });
+// })
