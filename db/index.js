@@ -3,35 +3,50 @@ const { Client } = require('pg');
 const client = new Client({ database: 'mydb' });
 
 client.fetchReviews = ({ product_id, count = 5, page = 1 }, cb) => {
+  // refine initial query to how many is asked for!
+  var response = {
+    product: product_id,
+    page: Number(page),
+    count: Number(count)
+  };
   client.query(`SELECT * FROM reviews WHERE product_id = ${product_id};`, (err, res) => {
     if (err) { return cb(err); };
     var reviews = res.rows;
-    reviews.forEach(review => {
-      review.photos = [];
-      review.review_id = review.id;
-      delete review.id;
-      delete review.product_id;
-    });
-    console.log('reviews:', reviews);
     if (reviews.length > 0) {
-      var review_ids = reviews.map(review => review.review_id.toString());
+      var filteredReviews = [];
+      reviews.forEach(review => {
+        review.photos = [];
+        review.review_id = review.id;
+        var { reported } = review;
+        delete review.reported;
+        delete review.id;
+        delete review.product_id;
+        delete review.reviewer_email;
+        if (reported !== true) {
+          filteredReviews.push(review);
+        }
+      });
+      console.log('filteredReviews:', filteredReviews);
+      var review_ids = filteredReviews.map(review => review.review_id.toString());
       client.query(`SELECT * FROM reviews_photos WHERE review_id IN (${review_ids.join(',')});`, (err, res) => {
         if (err) { return cb(err); };
         var photos = res.rows;
         photos.forEach(photo => {
           var { review_id } = photo;
           delete photo.review_id;
-          reviews.forEach(review => {
+          filteredReviews.forEach(review => {
             if (review.review_id === review_id) {
               review.photos.push(photo);
             }
           })
         });
         console.log('photos:', photos);
-        cb(null, reviews);
+        response.results = filteredReviews;
+        cb(null, response);
       });
     } else {
-      cb(null, reviews);
+      response.results = [];
+      cb(null, response);
     }
   });
 };

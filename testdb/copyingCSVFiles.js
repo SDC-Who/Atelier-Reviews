@@ -20,6 +20,8 @@ FROM '/Users/robertkelly/Dropbox/_Repos/_Immersive/_SDC/_oldCSV/reviews.csv'
 DELIMITER ','
 CSV HEADER;`
 
+`CREATE INDEX product_id_index ON reviews (product_id) INCLUDE (id, rating, date, summary, body, recommend, reported, reviewer_name, response, helpfulness);`
+
 // reviews_photos
 
 `CREATE TABLE IF NOT EXISTS reviews_photos (
@@ -32,6 +34,8 @@ CSV HEADER;`
 FROM '/Users/robertkelly/Dropbox/_Repos/_Immersive/_SDC/_oldCSV/reviews_photos.csv'
 DELIMITER ','
 CSV HEADER;`
+
+`CREATE INDEX review_id_index ON reviews_photos(review_id) INCLUDE (id, url);`
 
 // characteristics
 
