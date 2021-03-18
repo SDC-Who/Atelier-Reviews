@@ -80,7 +80,22 @@ client.fetchMetaData = (product_id, cb) => {
       if (err) { return cb(err); };
       var characteristicReviews = res.rows;
       console.log('characteristicReviews:', characteristicReviews);
-      //
+      var characteristicCounter = {
+        Fit: 0,
+        Comfort: 0,
+        Quality: 0,
+        Size: 0,
+        Length: 0
+      };
+      characteristicReviews.forEach(review => {
+        characteristicCounter[review.name]++;
+        if (characteristicCounter[review.name] === 1) {
+          response.characteristics[review.name] = review.value.toFixed(16).toString();
+        } else {
+          response.characteristics[review.name] = ((( response.characteristics[review.name] + review.value ) / characteristicCounter[review.name]).toFixed(16)).toString();
+        }
+      });
+      console.log('characteristicCounter:', characteristicCounter);
       cb(null, response);
     });
     // cb(null, response);
@@ -88,6 +103,8 @@ client.fetchMetaData = (product_id, cb) => {
 };
 
 module.exports = client;
+
+// 3.2000000000000000
 
 // client.sortByRelative() {
 //   let maxHelpful = Math.max.apply(Math, this.state.displayReviews.map(function (o) {
