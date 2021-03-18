@@ -76,9 +76,11 @@ client.fetchMetaData = (product_id, cb) => {
     });
     // query database for characteristic reviews associated with each ID
     var review_ids = reviews.map(review => review.id.toString());
-    client.query(`SELECT * FROM characteristic_reviews WHERE review_id IN (${review_ids.join(',')});`, (err, res) => {
+    client.query(`SELECT * FROM characteristic_reviews INNER JOIN characteristics ON characteristic_id = characteristics.id WHERE review_id IN (${review_ids.join(',')});`, (err, res) => {
       if (err) { return cb(err); };
-      console.log('res.rows from characteristic_reviews:', res.rows);
+      var characteristicReviews = res.rows;
+      console.log('characteristicReviews:', characteristicReviews);
+      //
       cb(null, response);
     });
     // cb(null, response);
