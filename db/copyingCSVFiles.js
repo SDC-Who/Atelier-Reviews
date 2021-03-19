@@ -7,8 +7,10 @@
 
 // reviews
 
+// should body be "text" (and thus flexible!) ??
+
 `CREATE TABLE IF NOT EXISTS reviews (
-  id int PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   product_id int,
   rating int,
   date varchar(25),

@@ -1,9 +1,11 @@
 const express = require('express');
 const app = express();
-const port = 3000;
+const port = 3002;
+const bodyParser = require('body-parser');
 const client = require('../db');
 const morgan = require('morgan');
 
+app.use(bodyParser.json());
 app.use(morgan('dev'));
 client.connect()
   .then(() => console.log('Connected to database!'))
@@ -16,7 +18,7 @@ app.get('/', (req, res) => {
 app.get('/reviews', (req, res) => {
   client.fetchReviews(req.query, (err, data) => {
     if (err) {
-      console.log('err:', err);
+      console.log('err from client.fetchReviews:', err);
       res.sendStatus(500);
     } else {
       res.send(data);
@@ -27,12 +29,24 @@ app.get('/reviews', (req, res) => {
 app.get('/reviews/meta', (req, res) => {
   client.fetchMetaData(req.query.product_id, (err, data) => {
     if (err) {
-      console.log('err:', err);
+      console.log('err from client.fetchMetaData:', err);
       res.sendStatus(500);
     } else {
       res.send(data);
     }
   });
+});
+
+app.post('/reviews', (req, res) => {
+  // console.log('req.body:', req.body);
+  client.postReview(req.body, err => {
+    if (err) {
+      console.log('err from client.postReview:', err);
+    } else {
+      res.sendStatus(201);
+    }
+  })
+
 });
 
 

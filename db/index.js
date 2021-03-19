@@ -103,6 +103,37 @@ client.fetchMetaData = (product_id, cb) => {
   });
 };
 
+client.postReview = ({ product_id, rating, summary, body, recommend, name, email, photos, characteristics }, cb) => {
+  var date = new Date().toISOString();
+  var strings = [date, summary, body, name, email].map(string => {
+    if (string.indexOf("'") !== -1) {
+      string = string.split("'").join("''");
+    }
+    string = '\'' + string + '\'';
+    return string;
+  });
+  var arrayOfData = [product_id, rating, recommend, strings];
+  var query = `INSERT INTO reviews(id, product_id, rating, recommend, date, summary, body, reviewer_name, reviewer_email) VALUES((SELECT SETVAL('reviews_id_seq',MAX(id)+1) FROM reviews),${arrayOfData.join(',')});`;
+  console.log('query:', query);
+
+  // insert a row in reviews
+  // id int PRIMARY KEY, product_id int, rating int, date varchar(25), summary varchar(255), body varchar(500), recommend boolean, reported boolean, reviewer_name varchar(50), reviewer_email varchar(50), response varchar(255), helpfulness int
+  // client.query(query, (err, res) => {
+  //   if (err) { return cb(err); };
+  //   console.log('res:', res);
+  //   cb(null);
+  // });
+
+  // if there are photos, insert a row in reviews_photos
+
+  // if there are characteristics, insert a row in characteristics AND characteristic_reviews
+
+  cb(null);
+};
+
+// '3347471' should be 'Fit', '3347472' should be 'Length', '3347473' should be 'Comfort', '3347474' should be 'Quality'
+
+
 module.exports = client;
 
 // client.sortByRelative() {
