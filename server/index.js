@@ -42,6 +42,7 @@ app.post('/reviews', (req, res) => {
   client.postReview(req.body, err => {
     if (err) {
       console.log('err from client.postReview:', err);
+      res.sendStatus(500);
     } else {
       res.sendStatus(201);
     }

@@ -34,7 +34,7 @@ CSV HEADER;`
 // reviews_photos
 
 `CREATE TABLE IF NOT EXISTS reviews_photos (
-  id int PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   review_id int,
   url varchar(255)
 );`

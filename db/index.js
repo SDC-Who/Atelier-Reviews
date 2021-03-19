@@ -104,31 +104,48 @@ client.fetchMetaData = (product_id, cb) => {
 };
 
 client.postReview = ({ product_id, rating, summary, body, recommend, name, email, photos, characteristics }, cb) => {
-  var date = new Date().toISOString();
-  var strings = [date, summary, body, name, email].map(string => {
-    if (string.indexOf("'") !== -1) {
-      string = string.split("'").join("''");
-    }
-    string = '\'' + string + '\'';
-    return string;
-  });
-  var arrayOfData = [product_id, rating, recommend, strings];
-  var query = `INSERT INTO reviews(id, product_id, rating, recommend, date, summary, body, reviewer_name, reviewer_email) VALUES((SELECT SETVAL('reviews_id_seq',MAX(id)+1) FROM reviews),${arrayOfData.join(',')});`;
-  console.log('query:', query);
 
-  // insert a row in reviews
-  // id int PRIMARY KEY, product_id int, rating int, date varchar(25), summary varchar(255), body varchar(500), recommend boolean, reported boolean, reviewer_name varchar(50), reviewer_email varchar(50), response varchar(255), helpfulness int
-  // client.query(query, (err, res) => {
-  //   if (err) { return cb(err); };
-  //   console.log('res:', res);
-  //   cb(null);
-  // });
+  // get the newest review ID that will be created
+  client.query(`SELECT SETVAL('reviews_id_seq',MAX(id)+1) FROM reviews;`)
 
-  // if there are photos, insert a row in reviews_photos
+    .then(res => {
+      var newReviewId = Number(res.rows[0].setval);
 
-  // if there are characteristics, insert a row in characteristics AND characteristic_reviews
+      // prepare data for inserting row in reviews
 
-  cb(null);
+      var date = new Date().toISOString();
+      var strings = [date, summary, body, name, email].map(string => {
+        if (string.indexOf("'") !== -1) {
+          string = string.split("'").join("''");
+        }
+        string = '\'' + string + '\'';
+        return string;
+      });
+      var arrayOfData = [product_id, rating, recommend, strings];
+      var reviewQuery = `INSERT INTO reviews(id, product_id, rating, recommend, date, summary, body, reviewer_name, reviewer_email) VALUES(${newReviewId},${arrayOfData.join(',')});`;
+
+      client.query(reviewQuery)
+
+        .then(() => {
+          // can I insert more than one row in a single query?
+          if (photos.length > 0) {
+            var photosQuery = `INSERT INTO reviews_photos(id, review_id, url) VALUES((SELECT SETVAL('reviews_photos_id_seq',MAX(id)+1) FROM reviews_photos), ${newReviewId}, '${photos[0]}');`;
+            console.log('photosQuery:', photosQuery);
+            client.query(photosQuery)
+            .then(res => {
+              console.log('res.command:', res.command);
+              return cb(null);
+            })
+          } else {
+            cb(null);
+          }
+          // if there are characteristics, insert a row in characteristics AND characteristic_reviews
+          if (Object.keys(characteristics).length > 0) {
+            console.log('there be characteristics!');
+          }
+        })
+    })
+    .catch(err => cb(err));
 };
 
 // '3347471' should be 'Fit', '3347472' should be 'Length', '3347473' should be 'Comfort', '3347474' should be 'Quality'
