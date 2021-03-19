@@ -69,42 +69,41 @@ client.fetchMetaData = (product_id, cb) => {
   client.query(`SELECT id, rating, recommend FROM reviews WHERE product_id = ${product_id};`, (err, res) => {
     if (err) { return cb(err); };
     var reviews = res.rows;
-    console.log('reviews:', reviews);
+    if (reviews.length === 0) { return cb(null, 'No reviews for that product ID.'); };
     reviews.forEach(review => {
       response.ratings[review.rating] = response.ratings[review.rating] ? (Number(response.ratings[review.rating]) + 1).toString() : '1';
       response.recommended[review.recommend] = response.recommended[review.recommend] ? (Number(response.recommended[review.recommend]) + 1).toString() : '1';
     });
-    // query database for characteristic reviews associated with each ID
     var review_ids = reviews.map(review => review.id.toString());
     client.query(`SELECT * FROM characteristic_reviews INNER JOIN characteristics ON characteristic_id = characteristics.id WHERE review_id IN (${review_ids.join(',')});`, (err, res) => {
       if (err) { return cb(err); };
       var characteristicReviews = res.rows;
-      console.log('characteristicReviews:', characteristicReviews);
       var characteristicCounter = {
-        Fit: 0,
-        Comfort: 0,
-        Quality: 0,
-        Size: 0,
-        Length: 0
+        Fit: { totalScore: 0, count: 0 },
+        Comfort: { totalScore: 0, count: 0 },
+        Quality: { totalScore: 0, count: 0 },
+        Size: { totalScore: 0, count: 0 },
+        Length: { totalScore: 0, count: 0 },
+        Width: { totalScore: 0, count: 0 }
       };
       characteristicReviews.forEach(review => {
-        characteristicCounter[review.name]++;
-        if (characteristicCounter[review.name] === 1) {
-          response.characteristics[review.name] = review.value.toFixed(16).toString();
-        } else {
-          response.characteristics[review.name] = ((( response.characteristics[review.name] + review.value ) / characteristicCounter[review.name]).toFixed(16)).toString();
+        characteristicCounter[review.name].count++;
+        characteristicCounter[review.name].totalScore += review.value;
+        if (!response.characteristics[review.name]) {
+          response.characteristics[review.name] = { id: review.id.toString(), value: 0 };
         }
       });
-      console.log('characteristicCounter:', characteristicCounter);
+      var presentCharacteristics = Object.keys(response.characteristics);
+      presentCharacteristics.forEach(characteristic => {
+        var average = characteristicCounter[characteristic].totalScore / characteristicCounter[characteristic].count;
+        response.characteristics[characteristic].value = average.toFixed(16).toString();
+      });
       cb(null, response);
     });
-    // cb(null, response);
   });
 };
 
 module.exports = client;
-
-// 3.2000000000000000
 
 // client.sortByRelative() {
 //   let maxHelpful = Math.max.apply(Math, this.state.displayReviews.map(function (o) {
