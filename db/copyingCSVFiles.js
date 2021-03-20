@@ -49,7 +49,7 @@ CSV HEADER;`
 // characteristics
 
 `CREATE TABLE IF NOT EXISTS characteristics (
-  id int PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   product_id int,
   name varchar(7)
 );`
@@ -62,7 +62,7 @@ CSV HEADER;`
 // characteristic_reviews
 
 `CREATE TABLE IF NOT EXISTS characteristic_reviews (
-  id int PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   characteristic_id int,
   review_id int,
   value int

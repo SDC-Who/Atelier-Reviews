@@ -105,14 +105,10 @@ client.fetchMetaData = (product_id, cb) => {
 
 client.postReview = ({ product_id, rating, summary, body, recommend, name, email, photos, characteristics }, cb) => {
 
-  // get the newest review ID that will be created
   client.query(`SELECT SETVAL('reviews_id_seq',MAX(id)+1) FROM reviews;`)
 
     .then(res => {
       var newReviewId = Number(res.rows[0].setval);
-
-      // prepare data for inserting row in reviews
-
       var date = new Date().toISOString();
       var strings = [date, summary, body, name, email].map(string => {
         if (string.indexOf("'") !== -1) {
@@ -122,50 +118,39 @@ client.postReview = ({ product_id, rating, summary, body, recommend, name, email
         return string;
       });
       var arrayOfData = [product_id, rating, recommend, strings];
-      var reviewQuery = `INSERT INTO reviews(id, product_id, rating, recommend, date, summary, body, reviewer_name, reviewer_email) VALUES(${newReviewId},${arrayOfData.join(',')});`;
+      var reviewQuery = `INSERT INTO reviews(id, product_id, rating, recommend, date, summary, body, reviewer_name, reviewer_email) VALUES((SELECT SETVAL('reviews_id_seq',MAX(id)+1) FROM reviews),${arrayOfData.join(',')}) RETURNING id;`;
 
       client.query(reviewQuery)
 
-        .then(() => {
-          // can I insert more than one row in a single query?
+        .then(res => {
+          var myPromises = [];
+          var newReviewId = res.rows[0].id;
+
           if (photos.length > 0) {
-            var photosQuery = `INSERT INTO reviews_photos(id, review_id, url) VALUES((SELECT SETVAL('reviews_photos_id_seq',MAX(id)+1) FROM reviews_photos), ${newReviewId}, '${photos[0]}');`;
-            console.log('photosQuery:', photosQuery);
-            client.query(photosQuery)
-            .then(res => {
-              console.log('res.command:', res.command);
-              return cb(null);
-            })
-          } else {
-            cb(null);
+            var photosQueries = photos.map((photo, index) => {
+              return `((SELECT SETVAL('reviews_photos_id_seq',MAX(id)+${index + 1}) FROM reviews_photos), ${newReviewId}, ${'\'' + photo + '\''})`;
+            });
+            var photosQuery = `INSERT INTO reviews_photos(id, review_id, url) VALUES ${photosQueries.join(', ')};`;
+            myPromises.push(client.query(photosQuery));
           }
-          // if there are characteristics, insert a row in characteristics AND characteristic_reviews
-          if (Object.keys(characteristics).length > 0) {
-            console.log('there be characteristics!');
+
+          var characteristicIds = Object.keys(characteristics);
+          if (characteristicIds.length > 0) {
+            var characteristicsQueries = characteristicIds.map((characteristicId, index) => {
+              return `((SELECT SETVAL('characteristic_reviews_id_seq',MAX(id)+${index + 1}) FROM characteristic_reviews), ${newReviewId}, ${characteristicId}, ${characteristics[characteristicId]})`;
+            });
+            var characteristicsQuery = `INSERT INTO characteristic_reviews (id, review_id, characteristic_id, value) VALUES ${characteristicsQueries.join(', ')};`;
+            myPromises.push(client.query(characteristicsQuery));
           }
+
+          Promise.all(myPromises)
+
+          .then(() => cb(null))
+
+          .catch(err => cb(err));
         })
     })
     .catch(err => cb(err));
 };
 
-// '3347471' should be 'Fit', '3347472' should be 'Length', '3347473' should be 'Comfort', '3347474' should be 'Quality'
-
-
 module.exports = client;
-
-// client.sortByRelative() {
-//   let maxHelpful = Math.max.apply(Math, this.state.displayReviews.map(function (o) {
-//     return o.helpfulness;
-//   }))
-//   let maxDate = Math.max.apply(Math, this.state.displayReviews.map(function (o) {
-//     return Math.round((new Date() - new Date(o.date)) / (1000 * 60 * 60 * 24))
-//   }))
-//   let sortByRelative = this.state.displayReviews.map(function (review) {
-//     var o = Object.assign({}, review);
-//     o.a_sort = (o.helpfulness / maxHelpful) + ((new Date(o.date) / (1000 * 60 * 60 * 24)) / maxDate)
-//     return o;
-//   })
-//   return sortByRelative.sort(function (a, b) {
-//     return -(a.sort - b.sort);
-//   })
-// };
