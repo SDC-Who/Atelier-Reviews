@@ -71,5 +71,5 @@ app.put('/reviews/:review_id/helpful', (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server is listening at http://localhost:${port}`);
+  console.log(`Server is listening in at http://localhost:${port}`);
 });
