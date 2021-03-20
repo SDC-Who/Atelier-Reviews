@@ -47,23 +47,29 @@ app.post('/reviews', (req, res) => {
       res.sendStatus(201);
     }
   })
+});
 
+app.put('/reviews/:review_id/report', (req, res) => {
+  client.reportReview(req.params.review_id, err => {
+    if (err) {
+      console.log('err from client.updateReview:', err);
+    } else {
+      res.sendStatus(204);
+    }
+  });
+});
+
+app.put('/reviews/:review_id/helpful', (req, res) => {
+  client.supportReview(req.params.review_id, err => {
+    if (err) {
+      console.log('err from client.supportReview:', err);
+    } else {
+      res.sendStatus(204);
+    }
+  });
 });
 
 
 app.listen(port, () => {
   console.log(`Server is listening at http://localhost:${port}`);
 });
-
-
-
-// app.get('/db', (req, res) => {
-//   client.fetchCities((err, data) => {
-//     if (err) {
-//       console.log('err:', err);
-//       res.sendStatus(500);
-//     } else {
-//       res.send(data);
-//     }
-//   });
-// })

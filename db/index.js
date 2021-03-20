@@ -153,4 +153,22 @@ client.postReview = ({ product_id, rating, summary, body, recommend, name, email
     .catch(err => cb(err));
 };
 
+client.reportReview = (review_id, cb) => {
+  var reportQuery = `UPDATE reviews SET reported = true WHERE id = ${review_id};`;
+  client.query(reportQuery)
+  .then(() => cb(null))
+  .catch(err => cb(err));
+};
+
+client.supportReview = (review_id, cb) => {
+  client.query(`SELECT helpfulness FROM reviews WHERE id = ${review_id}`)
+  .then(res => {
+    var helpfulnessQuery = `UPDATE reviews SET helpfulness = ${res.rows[0].helpfulness + 1} WHERE id = ${review_id};`;
+    console.log('helpfulnessQuery:', helpfulnessQuery);
+    return client.query(helpfulnessQuery);
+  })
+  .then(() => cb(null))
+  .catch(err => cb(err));
+};
+
 module.exports = client;
