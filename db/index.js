@@ -1,6 +1,7 @@
 const { Client } = require('pg');
 
-const client = new Client({ database: 'mydb', user: 'postgres' });
+// const client = new Client({ database: 'mydb' });
+const client = new Client({ database: 'mydb', user: 'postgres', password: 'ballade2' });
 
 client.fetchReviews = ({ product_id, count = 5, page = 1, sort = null }, cb) => {
   const response = {
