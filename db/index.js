@@ -126,11 +126,12 @@ client.postReview = (rvw, cb) => {
         if (formattedString.indexOf("'") !== -1) {
           formattedString = formattedString.split("'").join("''");
         }
-        formattedString = `' ${formattedString} '`;
+        formattedString = `'${formattedString}'`;
         return formattedString;
       });
       const arrayOfData = [product_id, rating, recommend, strings];
       const reviewQuery = `INSERT INTO reviews(id, product_id, rating, recommend, date, summary, body, reviewer_name, reviewer_email) VALUES((SELECT SETVAL('reviews_id_seq',MAX(id)+1) FROM reviews),${arrayOfData.join(',')}) RETURNING id;`;
+      console.log('reviewQuery:', reviewQuery);
       client.query(reviewQuery)
 
         .then((res) => {
