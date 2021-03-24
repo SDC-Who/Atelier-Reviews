@@ -112,6 +112,7 @@ client.fetchMetaData = (productId, cb) => {
 };
 
 client.postReview = (rvw, cb) => {
+  // CHANGE THIS BACK TO CONST????
   let { product_id, rating, summary, body, recommend, name, email, photos, characteristics } = rvw;
   client.query('SELECT SETVAL(\'reviews_id_seq\',MAX(id)+1) FROM reviews;')
 
@@ -131,6 +132,8 @@ client.postReview = (rvw, cb) => {
       product_id = product_id || 'null';
       rating = rating || 'null';
       recommend = recommend || 'null';
+      photos = photos || [];
+      characteristics = characteristics || {};
       const arrayOfData = [product_id, rating, recommend, strings];
       const reviewQuery = `INSERT INTO reviews(id, product_id, rating, recommend, date, summary, body, reviewer_name, reviewer_email) VALUES((SELECT SETVAL('reviews_id_seq',MAX(id)+1) FROM reviews),${arrayOfData.join(',')}) RETURNING id;`;
       console.log('reviewQuery:', reviewQuery);
