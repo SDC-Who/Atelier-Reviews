@@ -112,13 +112,14 @@ client.fetchMetaData = (productId, cb) => {
 };
 
 client.postReview = (rvw, cb) => {
-  const { product_id, rating, summary, body, recommend, name, email, photos, characteristics } = rvw;
+  let { product_id, rating, summary, body, recommend, name, email, photos, characteristics } = rvw;
   client.query('SELECT SETVAL(\'reviews_id_seq\',MAX(id)+1) FROM reviews;')
 
     .then(() => {
       // const newReviewId = Number(res.rows[0].setval);
       const date = new Date().toISOString();
       const strings = [date, summary, body, name, email].map((string) => {
+        // HERE'S A FALLBACK BECAUSE OF LOADER.IO
         let formattedString = string || '';
         if (formattedString.indexOf("'") !== -1) {
           formattedString = formattedString.split("'").join("''");
@@ -126,8 +127,13 @@ client.postReview = (rvw, cb) => {
         formattedString = `'${formattedString}'`;
         return formattedString;
       });
+      // HERE ARE SOME MORE FALLBACKS BECAUSE OF LOADER.IO
+      product_id = product_id || '';
+      rating = rating || '';
+      recommend = recommend || '';
       const arrayOfData = [product_id, rating, recommend, strings];
       const reviewQuery = `INSERT INTO reviews(id, product_id, rating, recommend, date, summary, body, reviewer_name, reviewer_email) VALUES((SELECT SETVAL('reviews_id_seq',MAX(id)+1) FROM reviews),${arrayOfData.join(',')}) RETURNING id;`;
+      console.log('reviewQuery:', reviewQuery);
       client.query(reviewQuery)
 
         .then((res) => {
