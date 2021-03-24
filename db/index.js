@@ -1,11 +1,8 @@
 const { Client } = require('pg');
+const config = require('../config.js');
 
 // const client = new Client({ database: 'mydb' });
-// const client = new Client({ user: 'postgres', host: '18.217.46.69', port: 5432, database: 'mydb' });
-const client = new Client({ user: 'postgres', host: '18.217.46.69', port: 5432, database: 'postgres', password: 'ballade2' });
-// const client = new Client({ PGUSER: 'postgres', PGHOST: '18.217.46.69', PGPORT: 5432, PGDATABASE: 'postgres', PGPASSWORD: 'md5' });
-// pguser, pgphost, pg password, pd database, pg port in the .env
-// psql -h 'ec2-3-135-239-249.us-east-2.compute.amazonaws.com' -p 22 -U 'mydb'
+const client = new Client({ user: 'postgres', host: '18.217.46.69', port: 5432, database: 'postgres', password: config.password });
 
 client.fetchReviews = ({ product_id, count = 5, page = 1, sort = null }, cb) => {
   const response = {
