@@ -119,7 +119,7 @@ client.postReview = (rvw, cb) => {
       // const newReviewId = Number(res.rows[0].setval);
       const date = new Date().toISOString();
       const strings = [date, summary, body, name, email].map((string) => {
-        let formattedString = string;
+        let formattedString = string || '';
         if (formattedString.indexOf("'") !== -1) {
           formattedString = formattedString.split("'").join("''");
         }
