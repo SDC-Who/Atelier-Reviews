@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const client = require('../db');
+const config = require('../config.js');
 
 const app = express();
 const port = 3002;
@@ -14,6 +15,10 @@ client.connect()
 
 app.get('/', (req, res) => {
   res.send('Hello World!');
+});
+
+app.get(`/${config.loaderToken}`, (req, res) => {
+  res.send('Hello, Loader!');
 });
 
 app.get('/reviews', (req, res) => {
