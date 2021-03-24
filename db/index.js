@@ -1,7 +1,11 @@
 const { Client } = require('pg');
 
-const client = new Client({ database: 'mydb' });
-// const client = new Client({ database: 'mydb', user: 'postgres', password: 'ballade2' });
+// const client = new Client({ database: 'mydb' });
+// const client = new Client({ user: 'postgres', host: '18.217.46.69', port: 5432, database: 'mydb' });
+const client = new Client({ user: 'postgres', host: '18.217.46.69', port: 5432, database: 'postgres', password: 'ballade2' });
+// const client = new Client({ PGUSER: 'postgres', PGHOST: '18.217.46.69', PGPORT: 5432, PGDATABASE: 'postgres', PGPASSWORD: 'md5' });
+// pguser, pgphost, pg password, pd database, pg port in the .env
+// psql -h 'ec2-3-135-239-249.us-east-2.compute.amazonaws.com' -p 22 -U 'mydb'
 
 client.fetchReviews = ({ product_id, count = 5, page = 1, sort = null }, cb) => {
   const response = {
@@ -9,7 +13,8 @@ client.fetchReviews = ({ product_id, count = 5, page = 1, sort = null }, cb) => 
     page: Number(page) - 1,
     count: Number(count),
   };
-  client.query(`SELECT * FROM reviews WHERE product_id = ${product_id} LIMIT ${response.count} OFFSET ${response.page * response.count};`, (err, res) => {
+  var myQuery = `SELECT * FROM reviews WHERE product_id = ${product_id} LIMIT ${response.count} OFFSET ${response.page * response.count};`;
+  client.query(myQuery, (err, res) => {
     if (err) { return cb(err); }
     const reviews = res.rows;
     if (reviews.length > 0) {
@@ -126,7 +131,6 @@ client.postReview = (rvw, cb) => {
       });
       const arrayOfData = [product_id, rating, recommend, strings];
       const reviewQuery = `INSERT INTO reviews(id, product_id, rating, recommend, date, summary, body, reviewer_name, reviewer_email) VALUES((SELECT SETVAL('reviews_id_seq',MAX(id)+1) FROM reviews),${arrayOfData.join(',')}) RETURNING id;`;
-
       client.query(reviewQuery)
 
         .then((res) => {
