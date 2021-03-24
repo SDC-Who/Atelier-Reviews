@@ -128,9 +128,9 @@ client.postReview = (rvw, cb) => {
         return formattedString;
       });
       // HERE ARE SOME MORE FALLBACKS BECAUSE OF LOADER.IO
-      product_id = product_id || null;
-      rating = rating || null;
-      recommend = recommend || null;
+      product_id = product_id || 'null';
+      rating = rating || 'null';
+      recommend = recommend || 'null';
       const arrayOfData = [product_id, rating, recommend, strings];
       const reviewQuery = `INSERT INTO reviews(id, product_id, rating, recommend, date, summary, body, reviewer_name, reviewer_email) VALUES((SELECT SETVAL('reviews_id_seq',MAX(id)+1) FROM reviews),${arrayOfData.join(',')}) RETURNING id;`;
       console.log('reviewQuery:', reviewQuery);
