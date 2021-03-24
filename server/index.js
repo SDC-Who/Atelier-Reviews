@@ -18,15 +18,15 @@ app.get('/', (req, res) => {
 });
 
 app.get(`/${config.loaderToken}`, (req, res) => {
-  res.send('Hello, Loader!');
+  res.send(config.loaderToken);
 });
 
 app.get(`/${config.loaderToken}.html`, (req, res) => {
-  res.send('Hello, Loader!');
+  res.send(config.loaderToken);
 });
 
 app.get(`/${config.loaderToken}.txt`, (req, res) => {
-  res.send('Hello, Loader!');
+  res.send(config.loaderToken);
 });
 
 app.get('/reviews', (req, res) => {
