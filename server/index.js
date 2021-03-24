@@ -21,6 +21,14 @@ app.get(`/${config.loaderToken}`, (req, res) => {
   res.send('Hello, Loader!');
 });
 
+app.get(`/${config.loaderToken}.html`, (req, res) => {
+  res.send('Hello, Loader!');
+});
+
+app.get(`/${config.loaderToken}.txt`, (req, res) => {
+  res.send('Hello, Loader!');
+});
+
 app.get('/reviews', (req, res) => {
   client.fetchReviews(req.query, (err, data) => {
     if (err) {
