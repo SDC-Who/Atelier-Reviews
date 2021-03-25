@@ -31,8 +31,11 @@ client.fetchReviews = ({ product_id, count = 5, page = 1, sort = null }, cb) => 
           filteredReviews.push(review);
         }
       });
-
       const reviewIds = filteredReviews.map((review) => review.review_id.toString());
+      if (reviewIds.length === 0) {
+        response.rows = [];
+        return cb(null, response);
+      }
       client.query(`SELECT * FROM reviews_photos WHERE review_id IN (${reviewIds.join(',')});`, (err2, res2) => {
         if (err2) { return cb(err2); }
         const photos = res2.rows;
