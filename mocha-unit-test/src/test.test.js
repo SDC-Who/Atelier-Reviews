@@ -14,6 +14,8 @@ describe('Fetch Reviews', () => {
       .end((err, res) => {
         res.should.have.status(200);
         res.body.should.be.a('object');
+        res.body.should.have.keys(['product', 'page', 'count', 'results']);
+        res.body.results.should.be.a('array');
         done();
       });
   });
@@ -24,6 +26,7 @@ describe('Fetch Reviews', () => {
       .end((err, res) => {
         res.should.have.status(200);
         res.body.should.be.a('object');
+        res.body.should.have.keys(['productId', 'ratings', 'recommended', 'characteristics']);
         done();
       });
   });
@@ -76,6 +79,55 @@ describe('Edit Reviews', () => {
 
 describe('Post a review', () => {
 
+  let latestReviewId;
 
+  before(() => {
+    chai.request(app)
+      .get('/reviews?product_id=19091&sort=newest')
+      .end((err, res) => {
+        latestReviewId = res.body.results[0].review_id;
+      });
+  });
+
+  let reviewToPost = {
+    'product_id': 19091,
+    'rating': 5,
+    'summary': 'I\'m saying this was freakin\' INSANE DUDE',
+    'body': 'like I said, INSANE',
+    'recommend': true,
+    'name': 'fchopin2',
+    'email': 'rkelly2012@gmail.com',
+    'photos': ['https://images.unsplash.com/photo-1553830591-d8632a99e6ff?ixlib=rb-1.2.1&auto=format&fit=crop&w=1511&q=80', 'https://images.unsplash.com/photo-1556812191-381c7e7d96d6?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=2982&q=80'],
+    'characteristics': {
+      '64067': 5,
+      '64068': 4,
+      '64069': 3,
+      '64070': 2
+    }
+  };
+
+  let requestBody = JSON.stringify(reviewToPost);
+
+  it('should post a review', (done) => {
+    chai.request(app)
+      .post('/reviews')
+      .set('content-type', 'application/json')
+      .send(requestBody)
+      .end((err, res) => {
+        res.should.have.status(201);
+        done();
+      });
+  });
+
+  it('should store posted review in database', (done) => {
+    chai.request(app)
+      .get('/reviews?product_id=19091&sort=newest')
+      .end((err, res) => {
+        let updatedLatestReviewId = res.body.results[0].review_id;
+        updatedLatestReviewId.should.equal(latestReviewId + 1);
+        done();
+      });
+  });
 
 });
+
