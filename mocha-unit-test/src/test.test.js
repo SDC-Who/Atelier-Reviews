@@ -5,6 +5,7 @@ const chaiHttp = require('chai-http');
 
 chai.use(chaiHttp);
 const should = chai.should();
+const expect = chai.expect;
 
 describe('Fetch Reviews', () => {
 
@@ -33,59 +34,16 @@ describe('Fetch Reviews', () => {
 
 });
 
-describe('Edit Reviews', () => {
-
-  let helpfulCount;
-
-  before(() => {
-    chai.request(app)
-      .get('/reviews?product_id=50122&count=10')
-      .end((err, res) => {
-        for (var review of res.body.results) {
-          if (review.review_id === 289129) {
-            helpfulCount = review.helpfulness || 0;
-            break;
-          }
-        }
-      });
-  });
-
-  it('should submit "helpful"', (done) => {
-    chai.request(app)
-      .put('/reviews/289129/helpful')
-      .end((err, res) => {
-        res.should.have.status(204);
-        done();
-      })
-  });
-
-  it('should have incremented the helpful property', (done) => {
-    chai.request(app)
-      .get('/reviews?product_id=50122&count=10')
-      .end((err, res) => {
-        let updatedHelpfulness;
-        for (var review of res.body.results) {
-          if (review.review_id === 289129) {
-            updatedHelpfulness = review.helpfulness;
-            break;
-          }
-        }
-        updatedHelpfulness.should.equal(helpfulCount + 1);
-        done();
-      });
-  });
-
-});
-
 describe('Post a review', () => {
 
   let latestReviewId;
 
-  before(() => {
+  before((done) => {
     chai.request(app)
       .get('/reviews?product_id=19091&sort=newest')
       .end((err, res) => {
         latestReviewId = res.body.results[0].review_id;
+        done();
       });
   });
 
@@ -124,10 +82,93 @@ describe('Post a review', () => {
       .get('/reviews?product_id=19091&sort=newest')
       .end((err, res) => {
         let updatedLatestReviewId = res.body.results[0].review_id;
-        updatedLatestReviewId.should.equal(latestReviewId + 1);
+        expect(updatedLatestReviewId).to.be.greaterThan(latestReviewId);
         done();
       });
   });
 
 });
 
+
+describe('Edit Reviews', () => {
+
+  describe('Edit "Helpful" property', () => {
+
+      let helpfulCount;
+
+      before((done) => {
+        chai.request(app)
+          .get('/reviews?product_id=50122&count=10')
+          .end((err, res) => {
+            for (var review of res.body.results) {
+              if (review.review_id === 289129) {
+                helpfulCount = review.helpfulness || 0;
+                break;
+              }
+            }
+            done();
+          });
+      });
+
+      it('should submit "helpful"', (done) => {
+        chai.request(app)
+          .put('/reviews/289129/helpful')
+          .end((err, res) => {
+            res.should.have.status(204);
+            done();
+          })
+      });
+
+      it('should have incremented the helpful property', (done) => {
+        chai.request(app)
+          .get('/reviews?product_id=50122&count=10')
+          .end((err, res) => {
+            let updatedHelpfulness;
+            for (var review of res.body.results) {
+              if (review.review_id === 289129) {
+                updatedHelpfulness = review.helpfulness;
+                break;
+              }
+            }
+            updatedHelpfulness.should.equal(helpfulCount + 1);
+            done();
+          });
+      });
+
+  });
+
+  describe('Edit "Reported" property', () => {
+
+    let mostRecentReviewId;
+
+    before((done) => {
+      chai.request(app)
+        .get('/reviews?product_id=19091&sort=newest')
+        .end((err, res) => {
+          mostRecentReviewId = res.body.results[0].review_id;
+          done();
+        });
+    });
+
+    it('should submit "reported"', (done) => {
+      chai.request(app)
+        .put(`/reviews/${mostRecentReviewId}/report`)
+        .end((err, res) => {
+          res.should.have.status(204);
+          done();
+        });
+    });
+
+    it('should have removed review from circulation', (done) => {
+      chai.request(app)
+        .get('/reviews?product_id=19091&sort=newest')
+        .end((err, res) => {
+          let updatedMostRecentReviewId = res.body.results[0].review_id;
+          updatedMostRecentReviewId.should.not.equal(mostRecentReviewId);
+          done();
+        });
+    });
+
+  });
+
+});
