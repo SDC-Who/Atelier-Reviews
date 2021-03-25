@@ -2,7 +2,7 @@ const { Client } = require('pg');
 const config = require('../config.js');
 
 // const client = new Client({ database: 'mydb' });
-const client = new Client({ user: 'postgres', host: '18.217.46.69', port: 5432, database: 'postgres', password: config.password });
+const client = new Client({ user: 'postgres', host: '3.23.114.101', port: 5432, database: 'postgres', password: config.password });
 
 client.fetchReviews = ({ product_id, count = 5, page = 1, sort = null }, cb) => {
   const response = {

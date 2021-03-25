@@ -52,22 +52,30 @@ describe('Edit Reviews', () => {
       .put('/reviews/289129/helpful')
       .end((err, res) => {
         res.should.have.status(204);
-        chai.request(app)
-          .get('/reviews?product_id=50122&count=10')
-          .end((err, res) => {
-            let updatedHelpfulness;
-            for (var review of res.body.results) {
-              if (review.review_id === 289129) {
-                updatedHelpfulness = review.helpfulness;
-                break;
-              }
-            }
-            updatedHelpfulness.should.equal(helpfulCount + 1);
-          });
+        done();
+      })
+  });
+
+  it('should have incremented the helpful property', (done) => {
+    chai.request(app)
+      .get('/reviews?product_id=50122&count=10')
+      .end((err, res) => {
+        let updatedHelpfulness;
+        for (var review of res.body.results) {
+          if (review.review_id === 289129) {
+            updatedHelpfulness = review.helpfulness;
+            break;
+          }
+        }
+        updatedHelpfulness.should.equal(helpfulCount + 1);
+        done();
       });
-    done();
   });
 
 });
 
+describe('Post a review', () => {
 
+
+
+});
