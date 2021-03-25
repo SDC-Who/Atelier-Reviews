@@ -76,7 +76,7 @@ app.put('/reviews/:review_id/helpful', (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Server is listening in at http://localhost:${port}`);
+  console.log(`Server is listening in at ${config.host}:${port}`);
 });
 // server ec2 instance: ec2-18-216-109-204.us-east-2.compute.amazonaws.com
 
