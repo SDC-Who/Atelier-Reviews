@@ -11,6 +11,7 @@ client.fetchReviews = ({ product_id, count = 5, page = 1, sort = null }, cb) => 
     count: Number(count),
   };
   var myQuery = `SELECT * FROM reviews WHERE product_id = ${product_id} LIMIT ${response.count} OFFSET ${response.page * response.count};`;
+  console.log('myQuery:', myQuery);
   client.query(myQuery, (err, res) => {
     if (err) { return cb(err); }
     const reviews = res.rows;

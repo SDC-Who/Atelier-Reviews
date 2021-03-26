@@ -11,7 +11,8 @@ describe('Fetch Reviews', () => {
 
   it('should GET reviews', (done) => {
     chai.request(app)
-      .get('/reviews?product_id=1000009')
+      // .get(`/reviews?product_id=${Math.floor(Math.random() * 5000000)}`)
+      .get('/reviews?product_id=1000010')
       .end((err, res) => {
         res.should.have.status(200);
         res.body.should.be.a('object');
@@ -43,6 +44,7 @@ describe('Post a review', () => {
       .get('/reviews?product_id=19091&sort=newest')
       .end((err, res) => {
         latestReviewId = res.body.results[0].review_id;
+        // latestReviewId = 0;
         done();
       });
   });
