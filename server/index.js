@@ -8,7 +8,7 @@ const app = express();
 const port = 3002;
 
 app.use(bodyParser.json());
-app.use(morgan('dev'));
+//app.use(morgan('dev'));
 client.connect()
   .then(() => console.log('Connected to database!'))
   .catch((err) => console.log('Error connecting to database:', err));
