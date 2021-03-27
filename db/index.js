@@ -10,11 +10,12 @@ client.fetchReviews = ({ product_id, count = 5, page = 1, sort = null }, cb) => 
     page: Number(page) - 1,
     count: Number(count),
   };
-  var myQuery = `SELECT * FROM reviews WHERE product_id = ${product_id} LIMIT ${response.count} OFFSET ${response.page * response.count};`;
+  var myQuery = `SELECT id, rating, date, summary, body, recommend, reported, reviewer_name, response, helpfulness FROM reviews WHERE product_id = ${product_id} LIMIT ${response.count} OFFSET ${response.page * response.count};`;
   // console.log('myQuery:', myQuery);
   client.query(myQuery, (err, res) => {
     if (err) { return cb(err); }
     const reviews = res.rows;
+    // console.log('reviews:', reviews);
     if (reviews.length > 0) {
       const filteredReviews = [];
       reviews.forEach((review) => {
@@ -118,57 +119,57 @@ client.fetchMetaData = (productId, cb) => {
 client.postReview = (rvw, cb) => {
   // CHANGE THIS BACK TO CONST????
   let { product_id, rating, summary, body, recommend, name, email, photos, characteristics } = rvw;
-  client.query('SELECT SETVAL(\'reviews_id_seq\',MAX(id)+1) FROM reviews;')
+  const date = new Date().toISOString();
+  const strings = [date, summary, body, name].map((string) => {
+    // HERE'S A FALLBACK BECAUSE OF LOADER.IO
+    let formattedString = string || '';
+    if (formattedString.indexOf("'") !== -1) {
+      formattedString = formattedString.split("'").join("''");
+    }
+    formattedString = `'${formattedString}'`;
+    return formattedString;
+  });
+  // HERE ARE SOME MORE FALLBACKS BECAUSE OF LOADER.IO
+  product_id = product_id || 'null';
+  rating = rating || 'null';
+  recommend = recommend || 'null';
+  photos = photos || [];
+  characteristics = characteristics || {};
+  const arrayOfData = [product_id, rating, recommend, strings];
+  const reviewQuery = `INSERT INTO reviews(id, product_id, rating, recommend, date, summary, body, reviewer_name) VALUES((SELECT SETVAL('reviews_id_seq',MAX(id)+1) FROM reviews),${arrayOfData.join(',')}) RETURNING id;`;
+  // console.log('reviewQuery:', reviewQuery);
+  client.query(reviewQuery)
 
-    .then(() => {
-      // const newReviewId = Number(res.rows[0].setval);
-      const date = new Date().toISOString();
-      const strings = [date, summary, body, name, email].map((string) => {
-        // HERE'S A FALLBACK BECAUSE OF LOADER.IO
-        let formattedString = string || '';
-        if (formattedString.indexOf("'") !== -1) {
-          formattedString = formattedString.split("'").join("''");
-        }
-        formattedString = `'${formattedString}'`;
-        return formattedString;
-      });
-      // HERE ARE SOME MORE FALLBACKS BECAUSE OF LOADER.IO
-      product_id = product_id || 'null';
-      rating = rating || 'null';
-      recommend = recommend || 'null';
-      photos = photos || [];
-      characteristics = characteristics || {};
-      const arrayOfData = [product_id, rating, recommend, strings];
-      const reviewQuery = `INSERT INTO reviews(id, product_id, rating, recommend, date, summary, body, reviewer_name, reviewer_email) VALUES((SELECT SETVAL('reviews_id_seq',MAX(id)+1) FROM reviews),${arrayOfData.join(',')}) RETURNING id;`;
-      // console.log('reviewQuery:', reviewQuery);
-      client.query(reviewQuery)
+    .then((res) => {
+      const myPromises = [];
+      const newReviewId = res.rows[0].id;
 
-        .then((res) => {
-          const myPromises = [];
-          const newReviewId = res.rows[0].id;
+      if (photos.length > 0) {
+        const photoQueries = photos.map((photo, index) => `((SELECT SETVAL('reviews_photos_id_seq',MAX(id)+${index + 1}) FROM reviews_photos), ${newReviewId}, ${`' ${photo} '`})`);
+        const photosQuery = `INSERT INTO reviews_photos(id, review_id, url) VALUES ${photoQueries.join(', ')};`;
+        myPromises.push(client.query(photosQuery));
+      }
 
-          if (photos.length > 0) {
-            const photoQueries = photos.map((photo, index) => `((SELECT SETVAL('reviews_photos_id_seq',MAX(id)+${index + 1}) FROM reviews_photos), ${newReviewId}, ${`' ${photo} '`})`);
-            const photosQuery = `INSERT INTO reviews_photos(id, review_id, url) VALUES ${photoQueries.join(', ')};`;
-            myPromises.push(client.query(photosQuery));
-          }
+      if (email) {
+        const contactQuery = `INSERT INTO reviews_contact(contact_id, review_id, reviewer_email) VALUES (${newReviewId}, ${newReviewId}, '${email}');`;
+        myPromises.push(client.query(contactQuery));
+      }
 
-          const characteristicIds = Object.keys(characteristics);
-          if (characteristicIds.length > 0) {
-            const characteristicsQueries = characteristicIds.map((characteristicId, index) => `((SELECT SETVAL('characteristic_reviews_id_seq',MAX(id)+${index + 1}) FROM characteristic_reviews), ${newReviewId}, ${characteristicId}, ${characteristics[characteristicId]})`);
-            const characteristicsQuery = `INSERT INTO characteristic_reviews (id, review_id, characteristic_id, value) VALUES ${characteristicsQueries.join(', ')};`;
-            myPromises.push(client.query(characteristicsQuery));
-          }
+      const characteristicIds = Object.keys(characteristics);
+      if (characteristicIds.length > 0) {
+        const characteristicsQueries = characteristicIds.map((characteristicId, index) => `((SELECT SETVAL('characteristic_reviews_id_seq',MAX(id)+${index + 1}) FROM characteristic_reviews), ${newReviewId}, ${characteristicId}, ${characteristics[characteristicId]})`);
+        const characteristicsQuery = `INSERT INTO characteristic_reviews (id, review_id, characteristic_id, value) VALUES ${characteristicsQueries.join(', ')};`;
+        myPromises.push(client.query(characteristicsQuery));
+      }
 
-          Promise.all(myPromises)
+      Promise.all(myPromises)
 
-            .then(() => cb(null))
+        .then(() => cb(null))
 
-            .catch((err) => cb(err));
-        })
         .catch((err) => cb(err));
     })
     .catch((err) => cb(err));
+
 };
 
 client.reportReview = (reviewId, cb) => {
