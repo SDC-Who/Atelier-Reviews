@@ -10,7 +10,7 @@ client.fetchReviews = ({ product_id, count = 5, page = 1, sort = null }, cb) => 
     page: Number(page) - 1,
     count: Number(count),
   };
-  var myQuery = `SELECT id, rating, date, summary, body, recommend, reported, reviewer_name, helpfulness FROM reviews WHERE product_id = ${product_id} LIMIT ${response.count} OFFSET ${response.page * response.count};`;
+  var myQuery = `SELECT * FROM reviews WHERE product_id = ${product_id} LIMIT ${response.count} OFFSET ${response.page * response.count};`;
   // console.log('myQuery:', myQuery);
   client.query(myQuery, (err, res) => {
     if (err) { return cb(err); }
