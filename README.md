@@ -1,2 +1,2 @@
 # Atelier-Reviews
-Backend API micro-service for product reviews data for retail portal web shop.
+Backend API micro-service for product reviews data for retail portal webshop.
